@@ -1,0 +1,3 @@
+huggingface-hub
+fasttext-wheel
+transformers
