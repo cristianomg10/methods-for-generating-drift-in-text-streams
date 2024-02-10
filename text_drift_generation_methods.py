@@ -111,7 +111,9 @@ def sample_original_dataset(df, length, label_column, date_column, years_out=Non
     return final
 
 def run(original_dataset: pd.DataFrame, data_scenarios, destination_folder, file_prefix, label_column='label', year_column='year',
-        date_column='date', textual_column='review_treated', language_filter=None, language_column='', subset_number=10, subset_size=20000, drift_points_at_each=50000):
+        date_column='date', textual_column='review_treated', 
+        map_shift={}, map_swap={},
+        language_filter=None, language_column='', subset_number=10, subset_size=20000, drift_points_at_each=50000):
     for data_scenario in data_scenarios:
         if data_scenario == 1: # Class swap
             n_instances = subset_size
@@ -132,7 +134,7 @@ def run(original_dataset: pd.DataFrame, data_scenarios, destination_folder, file
                 print(f"Iteration {i} scenario {data_scenario} - withdrift")
 
                 if force_drift:
-                    df.loc[drift_point:,label_column] = df.loc[drift_point:,label_column].replace({0:1, 1:2, 2:0})
+                    df.loc[drift_point:,label_column] = df.loc[drift_point:,label_column].replace(map_swap)
                 df.to_csv(f"{destination_folder}/{file_prefix}-withdrift-{i+1}-{data_scenario}.csv", index=False)
 
         elif data_scenario == 2: # Class shift
@@ -152,9 +154,9 @@ def run(original_dataset: pd.DataFrame, data_scenarios, destination_folder, file
 
                 print(f"Iteration {i} scenario {data_scenario} - withdrift")
                 if force_drift:
-                    df.loc[drift_point:,label_column] = df.loc[drift_point:,label_column].replace({0:1, 1:2, 2:0})
-                    df.loc[drift_point*2:,label_column] = df.loc[drift_point*2:,label_column].replace({0:1, 1:2, 2:0})
-                    df.loc[drift_point*3:,label_column] = df.loc[drift_point*3:,label_column].replace({0:1, 1:2, 2:0})
+                    df.loc[drift_point:,label_column] = df.loc[drift_point:,label_column].replace(map_shift)
+                    df.loc[drift_point*2:,label_column] = df.loc[drift_point*2:,label_column].replace(map_shift)
+                    df.loc[drift_point*3:,label_column] = df.loc[drift_point*3:,label_column].replace(map_shift)
                 df.to_csv(f"{destination_folder}/{file_prefix}-withdrift-{i+1}-{data_scenario}.csv", index=False)
 
         elif data_scenario == 3: # Time slice removal
@@ -228,6 +230,8 @@ if __name__ == '__main__':
         data_scenarios=data_scenarios,
         destination_folder=destination_folder,
         file_prefix=file_prefix, 
+        map_swap={0:2, 2:0},
+        map_shift={0:1, 1:2, 2:0},
         language_column='language',
         language_filter='en'
         )
